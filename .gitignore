@@ -1,0 +1,10 @@
+# Ignore Google Sheets service account credentials
+credentials.json
+
+# Ignore build artifacts
+bin/
+obj/
+.vs/
+*.user
+error_log.txt
+appsettings.Development.json

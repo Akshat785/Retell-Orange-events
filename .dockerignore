@@ -1,0 +1,5 @@
+bin/
+obj/
+credentials.json
+.vs/
+error_log.txt
