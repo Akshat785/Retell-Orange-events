@@ -8,3 +8,5 @@ obj/
 *.user
 error_log.txt
 appsettings.Development.json
+.env
+.env.*

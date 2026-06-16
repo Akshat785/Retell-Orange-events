@@ -1,0 +1,20 @@
+version: '3.9'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: orange-events-backend
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+      - Retell__ApiKey=${RETELL_API_KEY}
+      - Retell__WebhookApiKey=${RETELL_WEBHOOK_API_KEY:-test123}
+      - Retell__AgentId=${RETELL_AGENT_ID}
+      - GoogleSheets__OrangeEventsSpreadsheetId=${GOOGLE_SHEETS_SPREADSHEET_ID}
+      - GoogleSheets__SpreadsheetId=${GOOGLE_SHEETS_SPREADSHEET_ID}
+      - GOOGLE_CREDENTIALS_JSON=${GOOGLE_CREDENTIALS_JSON}
+    ports:
+      - "5259:8080" # Maps port 5259 (matching orange-events-agent configuration) to container port 8080
+    restart: unless-stopped

@@ -148,31 +148,43 @@ public sealed class ComplaintGoogleSheetsService : IComplaintGoogleSheetsService
     /// </summary>
     private SheetsService CreateSheetsService()
     {
-        var credentialPath = _googleSheetsOptions.CredentialsJsonPath;
-        if (string.IsNullOrWhiteSpace(credentialPath))
-        {
-            _logger.LogError("Google Sheets CredentialsJsonPath is not configured in settings.");
-            throw new InvalidOperationException("Google credentials path is not configured.");
-        }
-
-        // Handle path expansion for relative paths or home directories
-        if (!Path.IsPathRooted(credentialPath))
-        {
-            credentialPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, credentialPath);
-        }
-
-        if (!File.Exists(credentialPath))
-        {
-            _logger.LogError("Google Sheets Service Account credentials JSON file not found at: '{Path}'", credentialPath);
-            throw new FileNotFoundException("Google credentials file not found.", credentialPath);
-        }
-
         GoogleCredential credential;
-        using (var stream = new FileStream(credentialPath, FileMode.Open, FileAccess.Read))
+        var envJson = Environment.GetEnvironmentVariable("GOOGLE_CREDENTIALS_JSON");
+
+        if (!string.IsNullOrWhiteSpace(envJson))
         {
+            _logger.LogInformation("Loading Google credentials from environment variable.");
 #pragma warning disable CS0618
-            credential = GoogleCredential.FromStream(stream).CreateScoped(_scopes);
+            credential = GoogleCredential.FromJson(envJson).CreateScoped(_scopes);
 #pragma warning restore CS0618
+        }
+        else
+        {
+            var credentialPath = _googleSheetsOptions.CredentialsJsonPath;
+            if (string.IsNullOrWhiteSpace(credentialPath))
+            {
+                _logger.LogError("Google Sheets CredentialsJsonPath is not configured in settings.");
+                throw new InvalidOperationException("Google credentials path is not configured.");
+            }
+
+            // Handle path expansion for relative paths or home directories
+            if (!Path.IsPathRooted(credentialPath))
+            {
+                credentialPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, credentialPath);
+            }
+
+            if (!File.Exists(credentialPath))
+            {
+                _logger.LogError("Google Sheets Service Account credentials JSON file not found at: '{Path}'", credentialPath);
+                throw new FileNotFoundException("Google credentials file not found.", credentialPath);
+            }
+
+            using (var stream = new FileStream(credentialPath, FileMode.Open, FileAccess.Read))
+            {
+#pragma warning disable CS0618
+                credential = GoogleCredential.FromStream(stream).CreateScoped(_scopes);
+#pragma warning restore CS0618
+            }
         }
 
         return new SheetsService(new BaseClientService.Initializer
